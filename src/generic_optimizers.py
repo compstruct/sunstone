@@ -158,22 +158,34 @@ def tls_sptl_mlt_thrd(
 
         # ****** get potential unrollings based on Sunstone principle & 
         #        layer configuration                                    ******
-        zx = enumerate_spatial(prob, tile.subtiles[-1], unroll_to_try, x_axis, y_axis)
-        #for x in zx:
-        #    print(x)
-        if sptl_cnstrnts:
-            zx_fltrd = []
-            for unrl in zx:
-                if  ((not sptl_cnstrnts[0]) or (all(sptl_cnstrnts[0][dim] == unrl[0][dim] for dim in sptl_cnstrnts[0]))) and\
-                    ((not sptl_cnstrnts[1]) or (all(sptl_cnstrnts[1][dim] == unrl[1][dim] for dim in sptl_cnstrnts[1]))):
-                    zx_fltrd.append(unrl)
-            for unrl in zx:
-                if  ((not sptl_cnstrnts[0]) or (all(sptl_cnstrnts[0][dim] == unrl[1][dim] for dim in sptl_cnstrnts[0]))) and\
-                    ((not sptl_cnstrnts[1]) or (all(sptl_cnstrnts[1][dim] == unrl[0][dim] for dim in sptl_cnstrnts[1]))) and\
-                    unrl not in zx_fltrd:
+        
+        unrln_cndds_len = 0
+        lp_itr = 0
+        while(unrln_cndds_len == 0):
+            lp_itr+=1
+            assert (lp_itr < 4), "Sunstone couldn't find any unrolling. Try changing the spatial constraint provided or increasing the size of your buffers."
+            if (lp_itr == 1):
+                zx = enumerate_spatial(prob, tile.subtiles[-1], unroll_to_try, x_axis, y_axis)
+            elif (lp_itr == 2):
+                zx = enumerate_spatial(prob, tile.subtiles[-1], unroll_to_try, x_axis, y_axis, nd=False)
+            elif (lp_itr == 3):
+                zx = enumerate_spatial(prob, tile.subtiles[-1], unroll_to_try, x_axis, y_axis, nd=False, max_util=False)
+            #for x in zx:
+            #    print(x)
+            if sptl_cnstrnts:
+                zx_fltrd = []
+                for unrl in zx:
+                    if  ((not sptl_cnstrnts[0]) or (all(sptl_cnstrnts[0][dim] == unrl[0][dim] for dim in sptl_cnstrnts[0]))) and\
+                        ((not sptl_cnstrnts[1]) or (all(sptl_cnstrnts[1][dim] == unrl[1][dim] for dim in sptl_cnstrnts[1]))):
                         zx_fltrd.append(unrl)
-            assert len(zx_fltrd) > 0, "There was no unrolling that matches the spatial constraints provided"
-            zx = zx_fltrd
+                for unrl in zx:
+                    if  ((not sptl_cnstrnts[0]) or (all(sptl_cnstrnts[0][dim] == unrl[1][dim] for dim in sptl_cnstrnts[0]))) and\
+                        ((not sptl_cnstrnts[1]) or (all(sptl_cnstrnts[1][dim] == unrl[0][dim] for dim in sptl_cnstrnts[1]))) and\
+                        unrl not in zx_fltrd:
+                            zx_fltrd.append(unrl)
+                #assert len(zx_fltrd) > 0, "There was no unrolling that matches the spatial constraints provided"
+                zx = zx_fltrd
+            unrln_cndds_len = len(zx)
 
         # ******* Now we want to find the potential tilings for each 
         #         unrolling candidate. To do so, we divide the total 

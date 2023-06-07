@@ -6,7 +6,7 @@ from functools import reduce
 import copy
 
 
-def enumerate_spatial(prob, tile_to_unroll, unroll_to_try, x_axis, y_axis):
+def enumerate_spatial(prob, tile_to_unroll, unroll_to_try, x_axis, y_axis, nd=True, max_util=True):
 
     DBG = False
     if x_axis == 4 and y_axis == 4:
@@ -22,7 +22,7 @@ def enumerate_spatial(prob, tile_to_unroll, unroll_to_try, x_axis, y_axis):
         for sp, tens_id in unroll_to_try:
             xgraph = GenericTileGraph(tile_to_unroll, None, None)
             if sp[0] not in xmemo:
-                xmemo[sp[0]] = xgraph.bottom_up_spatial(x_axis, sp[0], nd=True)
+                xmemo[sp[0]] = xgraph.bottom_up_spatial(x_axis, sp[0], nd=nd, max_util=max_util)
 
             spxs = xmemo[sp[0]]
 
@@ -70,7 +70,7 @@ def enumerate_spatial(prob, tile_to_unroll, unroll_to_try, x_axis, y_axis):
                 for k, v in spx.items():
                     tile_to_unroll_y[k] = int(tile_to_unroll_y[k] / v)
                 ygraph = GenericTileGraph(tile_to_unroll_y, None, None)
-                spys = ygraph.bottom_up_spatial(y_axis, sp[1], nd=True)
+                spys = ygraph.bottom_up_spatial(y_axis, sp[1], nd=nd, max_util=max_util)
 
                 if not spys:
                     spys = []
